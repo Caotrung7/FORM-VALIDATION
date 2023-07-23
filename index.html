@@ -106,17 +106,17 @@
       formGroupSelector: '.form-group',
       errorSelector: '.form-message',
       rules: [
-        // validator.isRequired('#fullname', "Please enter your full name"),
-        // validator.isRequired('#email'),
-        // validator.isEmail('#email'),
+        validator.isRequired('#fullname', "Please enter your full name"),
+        validator.isRequired('#email'),
+        validator.isEmail('#email'),
         validator.isRequired('#avatar'),
-        // validator.minLength('#password', 6),
-        // validator.isRequired('#password_confirmation'),
-        // validator.isRequired('#province'),
-        // validator.isRequired('input[name="gender"]'),
-        // validator.isConfirmed('#password_confirmation', function() {
-        //   return document.querySelector('#form-1 #password').value;
-        // }, "Incorrect password confirmation")
+        validator.minLength('#password', 6),
+        validator.isRequired('#password_confirmation'),
+        validator.isRequired('#province'),
+        validator.isRequired('input[name="gender"]'),
+        validator.isConfirmed('#password_confirmation', function() {
+          return document.querySelector('#form-1 #password').value;
+        }, "Incorrect password confirmation")
       ],
       onSummit: function (data) {
         //call API
