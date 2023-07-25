@@ -1,6 +1,16 @@
 
 function Validator(formSelector) {
+  var _this = this;
   var formRules = {};
+
+  function getParentElement(element, selector) {
+    while (element.parentElement) {
+      if (element.parentElement.matches(selector)) {
+        return element.parentElement;
+      }
+      element = element.parentElement;
+    }
+  }
 
   /** Quy uoc tao rule:
    * Neu co loi thi return errorMessage
@@ -59,7 +69,104 @@ function Validator(formSelector) {
           formRules[input.name] = [ruleFunc];
         }
       }
+
+      //Lang nghe su kien de validate (blur, change, ...)
+      input.onblur = handleValidate;
+      input.oninput = handleClearError;
     }
-    console.log(formRules);
+
+    //ham thuc hien validate
+    function handleValidate(e) {
+      var rules = formRules[e.target.name];
+      var errorMessage;
+
+      for (var rule of rules) {
+        errorMessage = rule(e.target.value);
+        if (errorMessage) break;
+      }
+
+      //Neu co loi thi hien thi loi ra UI
+      if (errorMessage) {
+        var formGroup = getParentElement(e.target, '.form-group');
+        if (formGroup) {
+          formGroup.classList.add('invalid');
+
+          var formMessage = formGroup.querySelector('.form-message');
+          if (formMessage) {
+            formMessage.innerText = errorMessage;
+          }
+        }
+      }
+      return !errorMessage;
+    }
+
+    //HAM clear messageError
+    function handleClearError(e) {
+      var formGroup = getParentElement(e.target, '.form-group');
+      if (formGroup.classList.contains('invalid')) {
+        formGroup.classList.remove('invalid');
+
+        var formMessage = formGroup.querySelector('form-message');
+        if (formMessage) {
+          formMessage.innerText = '';
+        }
+      }
+    }
+
+    //Xu ly hanh vi summit mac dinh
+    formElement.onsubmit = function (e) {
+      e.preventDefault();
+
+      var inputs = formElement.querySelectorAll('[name][rules]');
+      var isValid = true;
+
+      for (var input of inputs) {
+        if (!handleValidate({target: input})) {
+          isValid = false;
+        }
+      }
+
+      //Khi khong co loi thi submit form
+      if (isValid) {
+        if (typeof _this.onSubmit === 'function') {
+          var enableInputs = formElement.querySelectorAll('[name]');
+          var formValues = Array.from(enableInputs).reduce(function (values, input) {
+
+            switch (input.type) {
+              case 'radio':
+                values[input.name] = formElement.querySelector('input[name= " ' + input.name + ' "]:checked').value;
+                break;
+
+              case 'checkbox':
+                if (!input.matches(':checked')) {
+                  values[input.name] = '';
+                  return values;
+                }
+                if (!Array.isArray(values[input.name])) {
+                  values[input.name] = [];
+                }
+                values[input.name].push(input.value);
+                break;
+
+              case 'file':
+                values[input.name] = input.files;
+                break;
+
+              default:
+                values[input.name] = input.value;
+            }
+
+            return values;
+
+          }, {});
+
+          //Goi lai ham onSubmit va tra ve kem gia tri cua form dc nhap vao
+          _this.onSubmit(formValues);
+
+        } else {
+          formElement.submit();
+        }
+      }
+    }
   }
 }
